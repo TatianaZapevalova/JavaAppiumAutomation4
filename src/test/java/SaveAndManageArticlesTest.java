@@ -30,7 +30,7 @@ public class SaveAndManageArticlesTest extends BaseTest {
                 By.id("org.wikipedia:id/search_src_text")));
         searchField.sendKeys(searchQuery);
 
-        // 2. Найти первую статью
+        // 2. Найти первую статью (здесь просто беру первую статью, в Ex7 для выбора статьи из результатов будет использовано более удачное решение)
         WebElement firstResult = wait.until(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//android.widget.TextView[contains(@text,'" + searchQuery + "')]")));
 
@@ -43,10 +43,11 @@ public class SaveAndManageArticlesTest extends BaseTest {
 
         PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "finger");
         Sequence longPress = new Sequence(finger, 1);
-        longPress.addAction(finger.createPointerMove(Duration.ofMillis(0), PointerInput.Origin.viewport(), x, y));
-        longPress.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));
-        longPress.addAction(new Pause(finger, Duration.ofSeconds(1)));
-        longPress.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
+        longPress.addAction(finger.createPointerMove(Duration.ofMillis(0), PointerInput.Origin.viewport(), x, y)); //создаем движение пальца
+        longPress.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));//палец нажимает экран(MouseButton это технический параметр API,эмуляция нажатия левой кнопки мыши - для тапа всегда LEFT)
+
+        longPress.addAction(new Pause(finger, Duration.ofSeconds(1))); //пауза
+        longPress.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg())); //палец убирается (отпускаем левую кнопку мыши)
         driver.perform(Arrays.asList(longPress));
 
         // 5. Нажать Save
@@ -120,7 +121,7 @@ public class SaveAndManageArticlesTest extends BaseTest {
 
         // 18. Найти вторую статью
         WebElement secondResult = wait.until(ExpectedConditions.presenceOfElementLocated(
-        By.xpath("//android.widget.TextView[contains(@text,'" + searchQuery2 + "')]")));
+                By.xpath("//android.widget.TextView[contains(@text,'" + searchQuery2 + "')]")));
 
         // 19. Получить заголовок второй статьи
         String secondArticleTitle = secondResult.getText();
@@ -195,7 +196,7 @@ public class SaveAndManageArticlesTest extends BaseTest {
                 By.xpath("//android.widget.TextView[@text='" + articleTitle + "']"));
 
         int deleteX = articleToDelete.getLocation().getX();
-        int deleteY = articleToDelete.getLocation().getY();
+        int deleteY = articleToDelete.getLocation().getY(); //getY() возвращает верхнюю границу элемента (координату верхнего левого угла,то есть наш палец касается самого верха статьи, можно сделать и по центру статьи)
         int swipeStartX = deleteX + 300;
         int swipeEndX = deleteX + 10;
 

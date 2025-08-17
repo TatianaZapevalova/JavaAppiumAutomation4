@@ -18,7 +18,9 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
         String searchQuery = "Java";
         String desiredArticleTitle = "Java (programming language)";
 
-        // 1. Открыть поиск
+        // 1. Открыть поиск:локатор ищет элемент по id
+        // ждём, пока поле поиска станет доступным, и сохраняем его в переменную
+        // вводим строку searchQuery в найденное поле поиска
         driver.findElement(By.id("org.wikipedia:id/search_container")).click();
         WebElement searchField = wait.until(ExpectedConditions.elementToBeClickable(
                 By.id("org.wikipedia:id/search_src_text")));
@@ -29,7 +31,7 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
                 .until(ExpectedConditions.presenceOfAllElementsLocatedBy(
                         By.id("org.wikipedia:id/page_list_item_title")));
 
-        // 3. Ищем нужную статью
+        // 3. Ищем нужную статью (идем по каждому заголовку и достаем его текст через result.getText(), сравниваем его с desiredArticleTitle и при нахождении совпадения сохраняем его в targetArticle)
         WebElement targetArticle = null;
         for (WebElement result : results) {
             String titleText = result.getText();
@@ -47,7 +49,7 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
         System.out.println("Кликаем по статье: " + desiredArticleTitle);
         targetArticle.click();
 
-        // 5. Делаем небольшую паузу для загрузки
+        // 5. Делаем небольшую паузу для загрузки - Thread.sleep останавливает выполнение текущего потока на заданное время (жесткая пауза, не рекомендуется, попробую убрать на рефакторинге)
         try {
             Thread.sleep(1500);
         } catch (InterruptedException e) {
@@ -74,7 +76,7 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
             System.out.println("ℹ Окно Wikipedia Games не обнаружено");
         }
 
-// 7. Проверяем, есть ли заголовок статьи на экране (с ожиданием)
+            // 7. Проверяем, есть ли заголовок статьи на экране (с ожиданием)
         try {
             By articleTitleLocator = By.xpath("//*[contains(@text, '" + desiredArticleTitle + "')]");
 
