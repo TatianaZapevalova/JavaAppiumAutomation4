@@ -18,7 +18,7 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
         String searchQuery = "Java";
         String desiredArticleTitle = "Java (programming language)";
 
-        // 1. Открыть поиск:локатор ищет элемент по id
+             // 1. Открыть поиск:локатор ищет элемент по id
         // ждём, пока поле поиска станет доступным, и сохраняем его в переменную
         // вводим строку searchQuery в найденное поле поиска
         driver.findElement(By.id("org.wikipedia:id/search_container")).click();
@@ -26,12 +26,12 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
                 By.id("org.wikipedia:id/search_src_text")));
         searchField.sendKeys(searchQuery);
 
-        // 2. Ждём появления результатов поиска
+             // 2. Ждём появления результатов поиска
         List<WebElement> results = new WebDriverWait(driver, Duration.ofSeconds(5))
                 .until(ExpectedConditions.presenceOfAllElementsLocatedBy(
                         By.id("org.wikipedia:id/page_list_item_title")));
 
-        // 3. Ищем нужную статью (идем по каждому заголовку и достаем его текст через result.getText(), сравниваем его с desiredArticleTitle и при нахождении совпадения сохраняем его в targetArticle)
+             // 3. Ищем нужную статью (идем по каждому заголовку и достаем его текст через result.getText(), сравниваем его с desiredArticleTitle и при нахождении совпадения сохраняем его в targetArticle)
         WebElement targetArticle = null;
         for (WebElement result : results) {
             String titleText = result.getText();
@@ -45,18 +45,11 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
             throw new AssertionError("Статья с заголовком '" + desiredArticleTitle + "' не найдена в результатах поиска");
         }
 
-        // 4. Клик по найденной статье
+             // 4. Клик по найденной статье
         System.out.println("Кликаем по статье: " + desiredArticleTitle);
         targetArticle.click();
 
-        // 5. Делаем небольшую паузу для загрузки - Thread.sleep останавливает выполнение текущего потока на заданное время (жесткая пауза, не рекомендуется, попробую убрать на рефакторинге)
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        // 6. Если появилось окно Wikipedia Games
+             // 5. Если появилось окно Wikipedia Games
         try {
             WebElement gamesTitle = new WebDriverWait(driver, Duration.ofSeconds(5))
                     .until(ExpectedConditions.presenceOfElementLocated(
@@ -69,6 +62,10 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
             if (!closeButtons.isEmpty()) {
                 System.out.println("Нажимаем на крестик Wikipedia Games");
                 closeButtons.get(0).click();
+
+                // ждём, пока окно исчезнет
+                new WebDriverWait(driver, Duration.ofSeconds(5))
+                        .until(ExpectedConditions.invisibilityOf(gamesTitle));
             } else {
                 System.out.println("Кнопка закрытия Wikipedia Games не найдена");
             }
@@ -76,13 +73,13 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
             System.out.println("ℹ Окно Wikipedia Games не обнаружено");
         }
 
+             // 6. Делаем небольшую паузу для загрузки
+        By articleTitleLocator = By.xpath("//*[contains(@text, '" + desiredArticleTitle + "')]");
+        WebElement titleOnPage = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(articleTitleLocator));
+
             // 7. Проверяем, есть ли заголовок статьи на экране (с ожиданием)
         try {
-            By articleTitleLocator = By.xpath("//*[contains(@text, '" + desiredArticleTitle + "')]");
-
-            WebElement titleOnPage = new WebDriverWait(driver, Duration.ofSeconds(5))
-                    .until(ExpectedConditions.visibilityOfElementLocated(articleTitleLocator));
-
             System.out.println("Заголовок статьи найден на экране: " + titleOnPage.getText());
 
             // 8. Сохраняем текст заголовка до поворота
