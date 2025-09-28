@@ -1,10 +1,11 @@
+package lib;
+
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -12,7 +13,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -30,7 +30,8 @@ public class BaseTest {
                 .setAppActivity("org.wikipedia.main.MainActivity")
                 .setApp("/Users/zapevalovatatiana/Desktop/JavaAppiumAutomation3/JavaAppiumAutomation4/apks/org.wikipedia.apk");
 
-        driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
+        String appiumUrl = "http://127.0.0.1:4723";
+        driver = new AndroidDriver(new URL(appiumUrl), options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         handleWelcomeScreens();
     }
@@ -53,14 +54,8 @@ public class BaseTest {
         }
     }
 
-    protected void assertElementHasText(By locator, String expectedText, String errorMessage) {
-        WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
-        String actualText = element.getText();
-        if (!actualText.equals(expectedText)) {
-            throw new AssertionError(errorMessage + " Expected: '" + expectedText +
-                    "', but was: '" + actualText + "'");
-        }
-    }
+
+
 
     @AfterEach
     public void tearDown() {

@@ -1,3 +1,4 @@
+import lib.BaseTest;
 import org.openqa.selenium.WebElement;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;

@@ -1,7 +1,6 @@
-import io.appium.java_client.AppiumBy;
+import lib.BaseTest;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Pause;
 import org.openqa.selenium.interactions.PointerInput;
@@ -22,6 +21,7 @@ public class SaveAndManageArticlesTest extends BaseTest {
     @Test
     public void testSaveArticleToNewList() {
         String searchQuery = "Java";
+        String desiredArticleTitle = "Java (programming language)";
         String folderName = "TestFolder";
 
         // 1. Открыть поиск
@@ -30,16 +30,30 @@ public class SaveAndManageArticlesTest extends BaseTest {
                 By.id("org.wikipedia:id/search_src_text")));
         searchField.sendKeys(searchQuery);
 
-        // 2. Найти первую статью (здесь просто беру первую статью, в Ex7 для выбора статьи из результатов будет использовано более удачное решение)
-        WebElement firstResult = wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//android.widget.TextView[contains(@text,'" + searchQuery + "')]")));
+        // 2. Ждём появления результатов поиска
+        List<WebElement> searchResults = new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                        By.id("org.wikipedia:id/page_list_item_title")));
 
-        // 3. Получить заголовок
-        String articleTitle = firstResult.getText();
+        // 3. Ищем нужную статью (идем по каждому заголовку и достаем его текст через result.getText(), сравниваем его с desiredArticleTitle и при нахождении совпадения сохраняем его в targetArticle)
+        WebElement targetArticle = null;
+        for (WebElement result : searchResults) {
+            String articleTitle = result.getText();
+            if (articleTitle.equalsIgnoreCase(desiredArticleTitle)) {
+                targetArticle = result;
+                break;
+            }
+        }
+
+        if (targetArticle == null) {
+            throw new AssertionError("Article with title: '" + desiredArticleTitle + "' was not found in search results");
+        }
+
+
 
         // 4. Долгий тап (long press) с помощью W3C Actions
-        int x = firstResult.getLocation().getX() + 10;
-        int y = firstResult.getLocation().getY() + 10;
+        int x = targetArticle.getLocation().getX() + 10;
+        int y = targetArticle.getLocation().getY() + 10;
 
         PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "finger");
         Sequence longPress = new Sequence(finger, 1);
@@ -57,7 +71,7 @@ public class SaveAndManageArticlesTest extends BaseTest {
 
         // 6. Снэкбар "Saved ..."
         wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//*[contains(@text,'Saved " + articleTitle + "')]")));
+                By.xpath("//*[contains(@text,'Saved " + targetArticle + "')]")));
 
         // 7. Нажать "Add to a list"
         driver.findElement(By.id("org.wikipedia:id/snackbar_action")).click();
@@ -72,25 +86,22 @@ public class SaveAndManageArticlesTest extends BaseTest {
 
         // 10. Снэкбар "Moved ..."
         wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//*[contains(@text,'Moved " + articleTitle + "')]")));
+                By.xpath("//*[contains(@text,'Moved " + targetArticle + "')]")));
 
         // 11. Ожидаем снэкбар "Moved ... to ..." и нажимаем "View list"
         wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//*[contains(@text,'Moved " + articleTitle + "')]")));
+                By.xpath("//*[contains(@text,'Moved " + targetArticle + "')]")));
         driver.findElement(By.id("org.wikipedia:id/snackbar_action")).click();
 
         // 11.1 Проверка: если на экране появилось окно с кнопкой "Got it", нажимаем на неё
         try {
-            // Делаем небольшую паузу, чтобы окно успело появиться
-            Thread.sleep(500);
-
-            List<WebElement> gotItButtons = driver.findElements(
-                    By.xpath("//android.widget.Button[@resource-id='org.wikipedia:id/buttonView']"));
-            if (!gotItButtons.isEmpty()) {
-                gotItButtons.get(0).click();
+            WebElement gotItButton = wait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.xpath("//android.widget.Button[@resource-id='org.wikipedia:id/buttonView']")));
+            if (gotItButton.isDisplayed()) {
+                gotItButton.click();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // если кнопки нет – просто продолжаем тест
         }
 
         // 11.2 Ждём появления статьи в списке сохранённого
@@ -103,7 +114,7 @@ public class SaveAndManageArticlesTest extends BaseTest {
 
         // 13. Проверить наличие статьи
         WebElement articleInList = wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//*[@text='" + articleTitle + "']")));
+                By.xpath("//*[@text='" + targetArticle + "']")));
         assertTrue(articleInList.isDisplayed(), "Статья не найдена в списке");
 
         // 14. Вернуться назад по стрелке «Назад» и оказаться на экране с поисковой строкой
@@ -170,30 +181,15 @@ public class SaveAndManageArticlesTest extends BaseTest {
         // 28. Нажать «View list»
         driver.findElement(By.id("org.wikipedia:id/snackbar_action")).click();
 
-        // 29. Дождаться открытия экрана листа для чтения
-        // 29.1 Проверка: если на экране появилось окно с кнопкой "Got it", нажимаем на неё
-        try {
-            // Делаем небольшую паузу, чтобы окно успело появиться
-            Thread.sleep(500);
-
-            List<WebElement> gotItButtons = driver.findElements(
-                    By.xpath("//android.widget.Button[@resource-id='org.wikipedia:id/buttonView']"));
-            if (!gotItButtons.isEmpty()) {
-                gotItButtons.get(0).click();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         // 30. Убедиться, что в списке есть обе статьи
         wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//android.widget.TextView[@text='" + articleTitle + "']")));
+                By.xpath("//android.widget.TextView[@text='" + targetArticle + "']")));
         wait.until(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//android.widget.TextView[@text='" + secondArticleTitle + "']")));
 
         // 31. Найти статью для удаления по заголовку и получить её координаты
         WebElement articleToDelete = driver.findElement(
-                By.xpath("//android.widget.TextView[@text='" + articleTitle + "']"));
+                By.xpath("//android.widget.TextView[@text='" + targetArticle + "']"));
 
         int deleteX = articleToDelete.getLocation().getX();
         int deleteY = articleToDelete.getLocation().getY(); //getY() возвращает верхнюю границу элемента (координату верхнего левого угла,то есть наш палец касается самого верха статьи, можно сделать и по центру статьи)
@@ -211,7 +207,7 @@ public class SaveAndManageArticlesTest extends BaseTest {
 
         // 33. Проверить, что статья исчезла
         wait.until(ExpectedConditions.invisibilityOfElementLocated(
-                By.xpath("//android.widget.TextView[@text='" + articleTitle + "']")));
+                By.xpath("//android.widget.TextView[@text='" + targetArticle + "']")));
 
     }
 }

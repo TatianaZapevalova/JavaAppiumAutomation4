@@ -1,4 +1,5 @@
 import io.appium.java_client.android.AndroidDriver;
+import lib.BaseTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -87,20 +88,14 @@ public class CheckArticleTitleAfterRotateTest extends BaseTest {
 
             // 9. Поворачиваем экран в landscape
             ((AndroidDriver) driver).rotate(ScreenOrientation.LANDSCAPE);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.presenceOfElementLocated(articleTitleLocator));
             System.out.println("Экран переведен в альбомную ориентацию");
 
             // 10. Возвращаем обратно в portrait
             ((AndroidDriver) driver).rotate(ScreenOrientation.PORTRAIT);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.presenceOfElementLocated(articleTitleLocator));
             System.out.println("Экран возвращен в портретную ориентацию");
 
             // 11. Проверяем, что заголовок остался прежним

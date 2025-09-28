@@ -1,4 +1,4 @@
-import io.appium.java_client.AppiumDriver;
+import lib.BaseTest;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -17,22 +17,24 @@ public class CancelSearchTest extends BaseTest {
         WebElement searchContainer = wait.until(ExpectedConditions.elementToBeClickable(searchContainerLocator));
         searchContainer.click();
 
-        // 2. Вводим слово для поиска
+        // 2. Локатор поля ввода, которое появляется после клика
         By searchInputLocator = By.id("org.wikipedia:id/search_src_text");
+
+        //3. Ждем, пока элемент станет кликабельным
         WebElement searchInput = wait.until(ExpectedConditions.presenceOfElementLocated(searchInputLocator));
         searchInput.sendKeys("Appium");
 
-        // 3. Проверяем, что найдено несколько статей
+        // 4. Проверяем, что найдено несколько статей
         By searchResultLocator = By.id("org.wikipedia:id/page_list_item_title");
         List<WebElement> searchResults = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(searchResultLocator));
         assertTrue(searchResults.size() > 1, "Ожидалось, что найдется больше одной статьи");
 
-        // 4. Нажимаем кнопку отмены поиска
+        // 5. Нажимаем кнопку отмены поиска
         By closeButtonLocator = By.id("org.wikipedia:id/search_close_btn");
         WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(closeButtonLocator));
         closeButton.click();
 
-        // 5. Проверяем, что результаты поиска исчезли (поиск отменён)
+        // 6. Проверяем, что результаты поиска исчезли (поиск отменён)
         List<WebElement> resultsAfterCancel = driver.findElements(searchResultLocator);
         assertEquals(0, resultsAfterCancel.size(), "Результаты поиска должны исчезнуть после отмены");
     }
